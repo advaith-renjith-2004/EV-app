@@ -215,7 +215,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
         backgroundColor: const Color(0xFF1E293B),
         title: Row(
           children: [
-            const Icon(Icons.drive_eta, color: Color(0xFF3B82F6)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
+              ),
+            ),
             const SizedBox(width: 10),
             const Text(
               'DRIVER DASHBOARD',

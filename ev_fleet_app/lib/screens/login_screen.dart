@@ -106,9 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            height: 110,
+                            width: 110,
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
                                   color: primaryColor.withValues(alpha: 0.3),
@@ -116,16 +117,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   spreadRadius: 5,
                                 )
                               ],
-                              gradient: LinearGradient(
-                                colors: [primaryColor, secondaryColor],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
                             ),
-                            child: const Icon(
-                              Icons.electric_car,
-                              size: 56,
-                              color: Colors.white,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -134,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               colors: [primaryColor, Colors.white],
                             ).createShader(bounds),
                             child: const Text(
-                              'NEON FLEET',
+                              'VOLTFLEET',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 32,

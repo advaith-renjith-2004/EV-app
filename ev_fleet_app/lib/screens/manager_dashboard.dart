@@ -226,13 +226,14 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         elevation: 2,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [primaryColor, secondaryColor]),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
               ),
-              child: const Icon(Icons.dashboard_customize, size: 18, color: Colors.white),
             ),
             const SizedBox(width: 10),
             const Text(
