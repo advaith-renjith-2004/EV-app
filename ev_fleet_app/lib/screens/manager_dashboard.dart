@@ -1,8 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
+import '../services/theme_provider.dart';
 import 'profile_screen.dart';
 
 class ManagerDashboard extends StatefulWidget {
@@ -18,6 +21,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   final MapController _mapController = MapController();
 
   Map<String, dynamic>? _selectedVehicle;
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -215,15 +220,23 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF00FFCC); // Neon Cyan
-    final secondaryColor = const Color(0xFF3B82F6); // Electric Blue
-    final backgroundColor = const Color(0xFF0F172A); // Deep Slate
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final primaryColor = themeProvider.primaryColor;
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final secondaryColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1D4ED8);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
-        elevation: 2,
+        backgroundColor: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
         title: Row(
           children: [
             ClipRRect(
@@ -277,12 +290,20 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: primaryColor,
           labelColor: primaryColor,
-          unselectedLabelColor: Colors.blueGrey.shade400,
+          unselectedLabelColor: isDark ? Colors.blueGrey.shade400 : Colors.blueGrey.shade600,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: primaryColor.withValues(alpha: 0.12),
+            border: Border.all(color: primaryColor.withValues(alpha: 0.25), width: 1.5),
+          ),
+          indicatorPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11, letterSpacing: 0.5),
           tabs: const [
-            Tab(icon: Icon(Icons.map_outlined), text: 'LIVE TRACKING'),
-            Tab(icon: Icon(Icons.directions_car_outlined), text: 'VEHICLE DIRECTORY'),
+            Tab(icon: Icon(Icons.map_outlined, size: 18), text: 'LIVE TRACKING'),
+            Tab(icon: Icon(Icons.directions_car_outlined, size: 18), text: 'VEHICLE DIRECTORY'),
           ],
         ),
       ),
@@ -389,8 +410,20 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     required Color primaryColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      color: const Color(0xFF1E293B),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B).withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -509,6 +542,105 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             // Layer markers directly on top of tiles within the same map
             MarkerLayer(markers: markers),
           ],
+        ),
+
+        // Floating Search Overlay
+        Positioned(
+          top: 16,
+          left: 16,
+          right: 16,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            child: _isSearching
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          autofocus: true,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Search vehicle by model or plate...',
+                            hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                            prefixIcon: Icon(Icons.search, color: primaryColor),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _isSearching = false;
+                                  _searchQuery = '';
+                                });
+                              },
+                            ),
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            fillColor: Colors.transparent,
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _searchQuery = val;
+                            });
+                          },
+                        ),
+                        if (_searchQuery.isNotEmpty)
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            child: ListView(
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              children: vehicles
+                                  .where((v) =>
+                                      (v['model'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                                      (v['licensePlate'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
+                                  .map((v) {
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(v['model'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                  subtitle: Text(v['licensePlate'] ?? '', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11)),
+                                  trailing: _buildStatusBadge(v['status'] ?? 'available'),
+                                  onTap: () {
+                                    final lat = v['latitude'] as double? ?? 9.9312;
+                                    final lng = v['longitude'] as double? ?? 76.2673;
+                                    _centerMapOn(lat, lng, v);
+                                    setState(() {
+                                      _isSearching = false;
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                : Align(
+                    alignment: Alignment.topRight,
+                    child: FloatingActionButton.small(
+                      onPressed: () {
+                        setState(() {
+                          _isSearching = true;
+                        });
+                      },
+                      backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.9),
+                      foregroundColor: primaryColor,
+                      child: const Icon(Icons.search, size: 20),
+                    ),
+                  ),
+          ),
         ),
 
         // Selected Vehicle Info Card floating overlay
@@ -637,122 +769,151 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         final lat = vehicle['latitude'] as double? ?? 9.9312;
         final lng = vehicle['longitude'] as double? ?? 76.2673;
 
+        Color statusColor;
+        if (status == 'rented') {
+          statusColor = const Color(0xFF3B82F6);
+        } else if (status == 'maintenance') {
+          statusColor = Colors.redAccent;
+        } else {
+          statusColor = const Color(0xFF10B981);
+        }
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: statusColor,
+                    width: 5,
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.electric_car,
-                          color: status == 'rented' ? const Color(0xFF3B82F6) : primaryColor,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            model,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.electric_car,
+                              color: status == 'rented' ? const Color(0xFF3B82F6) : primaryColor,
+                            ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            plate,
-                            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                model,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                plate,
+                                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                      _buildStatusBadge(status),
                     ],
                   ),
-                  _buildStatusBadge(status),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // Battery charge UI
-              Row(
-                children: [
-                  Icon(
-                    soc > 80
-                        ? Icons.battery_full
-                        : soc > 30
-                            ? Icons.battery_charging_full_rounded
-                            : Icons.battery_alert,
-                    color: soc > 80
-                        ? const Color(0xFF10B981)
-                        : soc > 30
-                            ? Colors.amber
-                            : Colors.redAccent,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Battery Charge: ${soc.toStringAsFixed(1)}%',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: soc / 100.0,
-                  backgroundColor: const Color(0xFF0F172A),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    soc > 80
-                        ? const Color(0xFF10B981)
-                        : soc > 30
-                            ? Colors.amber
-                            : Colors.redAccent,
-                  ),
-                  minHeight: 6,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Tracking Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  // Battery charge UI
                   Row(
                     children: [
-                      const Icon(Icons.speed, color: Colors.cyan, size: 14),
-                      const SizedBox(width: 4),
+                      Icon(
+                        soc > 80
+                            ? Icons.battery_full
+                            : soc > 30
+                                ? Icons.battery_charging_full_rounded
+                                : Icons.battery_alert,
+                        color: soc > 80
+                            ? const Color(0xFF10B981)
+                            : soc > 30
+                                ? Colors.amber
+                                : Colors.redAccent,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
                       Text(
-                        '${speed.toStringAsFixed(1)} km/h',
-                        style: const TextStyle(color: Colors.cyan, fontSize: 12, fontWeight: FontWeight.w600),
+                        'Battery Charge: ${soc.toStringAsFixed(1)}%',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
-                  TextButton.icon(
-                    onPressed: () => _centerMapOn(lat, lng, vehicle),
-                    icon: const Icon(Icons.my_location, size: 14),
-                    label: const Text('TRACK ON MAP'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: soc / 100.0,
+                      backgroundColor: const Color(0xFF0F172A),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        soc > 80
+                            ? const Color(0xFF10B981)
+                            : soc > 30
+                                ? Colors.amber
+                                : Colors.redAccent,
+                      ),
+                      minHeight: 6,
                     ),
-                  )
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Tracking Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.speed, color: Colors.cyan, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${speed.toStringAsFixed(1)} km/h',
+                            style: const TextStyle(color: Colors.cyan, fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _centerMapOn(lat, lng, vehicle),
+                        icon: const Icon(Icons.my_location, size: 14),
+                        label: const Text('TRACK ON MAP'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },
