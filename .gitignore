@@ -1,0 +1,24 @@
+# Flutter/Dart build files
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+
+# Firebase service account keys & local configs
+*.json
+!firebase.json
+!pubspec.yaml
+!package.json
+
+# IDE settings
+.idea/
+.vscode/
+*.workspace
+*.iml
+
+# Operating system files
+Thumbs.db
+Desktop.ini
+.DS_Store
