@@ -236,7 +236,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             ),
             const SizedBox(width: 10),
             const Text(
-              'FLEET CONTROL',
+              'VOLTFLEET',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 16,

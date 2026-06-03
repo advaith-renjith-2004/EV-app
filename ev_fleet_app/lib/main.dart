@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'EV Fleet Control',
+            title: 'VoltFleet',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.buildThemeData(false), // Light Theme
             darkTheme: themeProvider.buildThemeData(true), // Dark Theme
