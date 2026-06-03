@@ -53,6 +53,25 @@ class FirestoreService {
     }
   }
 
+  /// Adds a new vehicle to the database
+  Future<void> addVehicle({
+    required String vehicleId,
+    required String licensePlate,
+    required String model,
+  }) async {
+    await _db.collection('vehicles').doc(vehicleId).set({
+      'id': vehicleId,
+      'licensePlate': licensePlate,
+      'model': model,
+      'status': 'available',
+      'socPercent': 100.0,
+      'latitude': 9.9312, // Depot Lat
+      'longitude': 76.2673, // Depot Lng
+      'speed': 0.0,
+      'lastUpdated': FieldValue.serverTimestamp(),
+    });
+  }
+
   /// Starts a checkout trip for a driver
   Future<void> startTrip({
     required String vehicleId,
