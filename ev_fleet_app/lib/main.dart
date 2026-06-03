@@ -13,12 +13,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,15 +21,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp(
-      title: 'EV Fleet Control',
-      debugShowCheckedModeBanner: false,
-      theme: themeProvider.buildThemeData(false), // Light Theme
-      darkTheme: themeProvider.buildThemeData(true), // Dark Theme
-      themeMode: themeProvider.themeMode, // Current Mode (Light or Dark)
-      home: const AuthGate(),
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'EV Fleet Control',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.buildThemeData(false), // Light Theme
+            darkTheme: themeProvider.buildThemeData(true), // Dark Theme
+            themeMode: themeProvider.themeMode, // Current Mode (Light or Dark)
+            home: const AuthGate(),
+          );
+        },
+      ),
     );
   }
 }
