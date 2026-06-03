@@ -43,6 +43,16 @@ class FirestoreService {
     });
   }
 
+  /// Updates user profile details like name and photo
+  Future<void> updateUserProfile(String uid, {String? name, String? photoUrl}) async {
+    final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
+    if (photoUrl != null) updates['photoUrl'] = photoUrl;
+    if (updates.isNotEmpty) {
+      await _db.collection('users').doc(uid).update(updates);
+    }
+  }
+
   /// Starts a checkout trip for a driver
   Future<void> startTrip({
     required String vehicleId,
