@@ -31,6 +31,38 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  String _getCleanErrorMessage(dynamic e) {
+    if (e is FirebaseAuthException) {
+      switch (e.code) {
+        case 'invalid-credential':
+        case 'wrong-password':
+        case 'user-not-found':
+          return 'Invalid email or password.';
+        case 'email-already-in-use':
+          return 'This email address is already in use.';
+        case 'weak-password':
+          return 'The password is too weak. Please use at least 6 characters.';
+        case 'invalid-email':
+          return 'Please enter a valid email address.';
+        case 'network-request-failed':
+          return 'Network error. Please check your connection.';
+        case 'user-disabled':
+          return 'This account has been disabled.';
+        case 'too-many-requests':
+          return 'Too many login attempts. Please try again later.';
+        default:
+          return e.message ?? 'An authentication error occurred.';
+      }
+    }
+    
+    final errorStr = e.toString();
+    if (errorStr.contains('permission-denied') || errorStr.contains('PERMISSION_DENIED')) {
+      return 'Database access denied. Please check your database rules.';
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -48,13 +80,19 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (userCredential.user != null) {
-          // Save role to Firestore
-          await _firestoreService.createUserProfile(
-            userCredential.user!.uid,
-            _nameController.text.trim(),
-            _emailController.text.trim(),
-            _selectedRole,
-          );
+          try {
+            // Save role to Firestore
+            await _firestoreService.createUserProfile(
+              userCredential.user!.uid,
+              _nameController.text.trim(),
+              _emailController.text.trim(),
+              _selectedRole,
+            );
+          } catch (firestoreError) {
+            // Rollback auth registration if database creation fails
+            await userCredential.user!.delete();
+            rethrow;
+          }
         }
       } else {
         // Log in user
@@ -65,11 +103,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = '[${e.code}] ${e.message ?? "An authentication error occurred."}';
+        _errorMessage = _getCleanErrorMessage(e);
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'An unexpected error occurred: $e';
+        _errorMessage = _getCleanErrorMessage(e);
       });
     } finally {
       if (mounted) {
