@@ -292,39 +292,30 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
 
     return Stack(
       children: [
-        // Map Container wrapped in inverted color matrix for Dark Mode Look
-        ColorFiltered(
-          colorFilter: const ColorFilter.matrix([
-            // Dark Inversion Matrix
-            -0.8, 0, 0, 0, 255,
-            0, -0.8, 0, 0, 255,
-            0, 0, -0.75, 0, 255,
-            0, 0, 0, 1, 0,
-          ]),
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: const LatLng(9.9312, 76.2673),
-              initialZoom: 14.0,
-              minZoom: 5.0,
-              maxZoom: 18.0,
-            ),
-            children: [
-              TileLayer(
+        // Consolidated single map instance to avoid overlapping Canvas canvas backgrounds
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: const LatLng(9.9312, 76.2673),
+            initialZoom: 14.0,
+            minZoom: 5.0,
+            maxZoom: 18.0,
+          ),
+          children: [
+            // Dark Inversion Matrix applied directly inside map children
+            ColorFiltered(
+              colorFilter: const ColorFilter.matrix([
+                -0.8, 0, 0, 0, 255,
+                0, -0.8, 0, 0, 255,
+                0, 0, -0.75, 0, 255,
+                0, 0, 0, 1, 0,
+              ]),
+              child: TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.advaith.evfleet',
               ),
-            ],
-          ),
-        ),
-
-        // Normal Markers layered outside of the Dark filter to preserve correct neon colors!
-        FlutterMap(
-          options: const MapOptions(
-            initialCenter: LatLng(9.9312, 76.2673),
-            initialZoom: 14.0,
-          ),
-          children: [
+            ),
+            // Layer markers directly on top of tiles within the same map
             MarkerLayer(markers: markers),
           ],
         ),
