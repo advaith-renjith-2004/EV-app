@@ -108,6 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (image != null) {
         final bytes = await image.readAsBytes();
         final base64String = 'data:image/png;base64,${base64Encode(bytes)}';
+        if (!mounted) return;
         setState(() {
           _selectedAvatarUrl = base64String;
         });
@@ -331,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const Text('Dark Dashboard Mode', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
                             Switch(
                               value: isDark,
-                              activeColor: currentTheme.primaryColor,
+                              activeThumbColor: currentTheme.primaryColor,
                               onChanged: (val) {
                                 themeProvider.toggleThemeMode(val);
                               },

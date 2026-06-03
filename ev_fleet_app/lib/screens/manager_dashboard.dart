@@ -87,6 +87,14 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         ),
         actions: [
           IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.account_circle_outlined, color: Colors.white70),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            ),
+          ),
+          IconButton(
             tooltip: 'Sign Out',
             icon: const Icon(Icons.logout, color: Colors.white70),
             onPressed: () => FirebaseAuth.instance.signOut(),

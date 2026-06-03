@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/firestore_service.dart';
 import '../services/geofencing_service.dart';
+import 'profile_screen.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -223,6 +224,14 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.account_circle_outlined, color: Colors.white70),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'Sign Out',
             icon: const Icon(Icons.logout, color: Colors.white70),
