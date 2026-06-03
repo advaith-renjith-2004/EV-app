@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: primaryColor.withOpacity(0.3),
+                          color: primaryColor.withValues(alpha: 0.3),
                           blurRadius: 30,
                           spreadRadius: 5,
                         )
@@ -157,15 +157,15 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(28.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.8), // Slate 800
+                  color: const Color(0xFF1E293B).withValues(alpha: 0.8), // Slate 800
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withValues(alpha: 0.08),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 40,
                       offset: const Offset(0, 10),
                     )
@@ -193,9 +193,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                           margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
-                            color: Colors.redAccent.withOpacity(0.15),
+                            color: Colors.redAccent.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             _errorMessage!,
@@ -292,7 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: (_isSignUp && _selectedRole == 'manager' ? primaryColor : secondaryColor)
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 5),
                             )
@@ -312,8 +312,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: _isSignUp && _selectedRole == 'manager'
-                                    ? [primaryColor, primaryColor.withOpacity(0.8)]
-                                    : [secondaryColor, secondaryColor.withOpacity(0.8)],
+                                    ? [primaryColor, primaryColor.withValues(alpha: 0.8)]
+                                    : [secondaryColor, secondaryColor.withValues(alpha: 0.8)],
                               ),
                               borderRadius: BorderRadius.circular(14),
                             ),
@@ -387,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.15) : Colors.transparent,
+          color: isSelected ? activeColor.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? activeColor : Colors.blueGrey.shade600,
@@ -427,7 +427,7 @@ class _LoginScreenState extends State<LoginScreen> {
       labelStyle: const TextStyle(color: Colors.blueGrey),
       prefixIcon: Icon(icon, color: Colors.blueGrey.shade400, size: 20),
       filled: true,
-      fillColor: const Color(0xFF0F172A).withOpacity(0.6), // Slate 900
+      fillColor: const Color(0xFF0F172A).withValues(alpha: 0.6), // Slate 900
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.blueGrey.shade700),

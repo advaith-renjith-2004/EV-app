@@ -47,7 +47,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
         });
       }
     } catch (e) {
-      print('Error checking active trip: $e');
+      debugPrint('Error checking active trip: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -247,9 +247,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [secondaryColor.withOpacity(0.1), const Color(0xFF1E293B)]),
+            gradient: LinearGradient(colors: [secondaryColor.withValues(alpha: 0.1), const Color(0xFF1E293B)]),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: secondaryColor.withOpacity(0.2)),
+            border: Border.all(color: secondaryColor.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,7 +280,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: secondaryColor.withOpacity(0.2),
+                color: secondaryColor.withValues(alpha: 0.2),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               )
@@ -290,7 +290,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
             onPressed: _openQrScanner,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E293B),
-              side: BorderSide(color: secondaryColor.withOpacity(0.4), width: 1.5),
+              side: BorderSide(color: secondaryColor.withValues(alpha: 0.4), width: 1.5),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               padding: EdgeInsets.zero,
             ),
@@ -342,7 +342,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
           label: const Text('CHECKOUT SIMULATOR VEHICLE (KL01CB1234)'),
           style: OutlinedButton.styleFrom(
             foregroundColor: primaryColor,
-            side: BorderSide(color: primaryColor.withOpacity(0.3)),
+            side: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -384,7 +384,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -440,7 +440,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isAtDepot ? const Color(0xFF10B981).withOpacity(0.3) : Colors.amber.withOpacity(0.3),
+                  color: isAtDepot ? const Color(0xFF10B981).withValues(alpha: 0.3) : Colors.amber.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -490,7 +490,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       boxShadow: [
                         if (isAtDepot)
                           BoxShadow(
-                            color: const Color(0xFF10B981).withOpacity(0.3),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           )

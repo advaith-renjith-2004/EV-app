@@ -73,8 +73,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
-                border: Border.all(color: primaryColor.withOpacity(0.3)),
+                color: primaryColor.withValues(alpha: 0.1),
+                border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -265,12 +265,12 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             duration: const Duration(milliseconds: 200),
             child: Container(
               decoration: BoxDecoration(
-                color: markerColor.withOpacity(0.2),
+                color: markerColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
                 border: Border.all(color: markerColor, width: isSelected ? 3 : 2),
                 boxShadow: [
                   BoxShadow(
-                    color: markerColor.withOpacity(0.3),
+                    color: markerColor.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 2,
                   )
@@ -338,11 +338,11 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withOpacity(0.9), // Slate 800
+                color: const Color(0xFF1E293B).withValues(alpha: 0.9), // Slate 800
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.12)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 5))
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 15, offset: const Offset(0, 5))
                 ],
               ),
               child: Column(
@@ -461,7 +461,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -594,9 +594,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
