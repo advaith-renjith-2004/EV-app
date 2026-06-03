@@ -549,98 +549,95 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
           top: 16,
           left: 16,
           right: 16,
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            child: _isSearching
-                ? Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B).withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          autofocus: true,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: 'Search vehicle by model or plate...',
-                            hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                            prefixIcon: Icon(Icons.search, color: primaryColor),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-                              onPressed: () {
-                                setState(() {
-                                  _isSearching = false;
-                                  _searchQuery = '';
-                                });
-                              },
-                            ),
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            fillColor: Colors.transparent,
-                          ),
-                          onChanged: (val) {
-                            setState(() {
-                              _searchQuery = val;
-                            });
-                          },
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 200),
-                            child: ListView(
-                              shrinkWrap: true,
-                              padding: EdgeInsets.zero,
-                              children: vehicles
-                                  .where((v) =>
-                                      (v['model'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                                      (v['licensePlate'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
-                                  .map((v) {
-                                return ListTile(
-                                  dense: true,
-                                  title: Text(v['model'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                                  subtitle: Text(v['licensePlate'] ?? '', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11)),
-                                  trailing: _buildStatusBadge(v['status'] ?? 'available'),
-                                  onTap: () {
-                                    final lat = v['latitude'] as double? ?? 9.9312;
-                                    final lng = v['longitude'] as double? ?? 76.2673;
-                                    _centerMapOn(lat, lng, v);
-                                    setState(() {
-                                      _isSearching = false;
-                                      _searchQuery = '';
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                      ],
-                    ),
-                  )
-                : Align(
-                    alignment: Alignment.topRight,
-                    child: FloatingActionButton.small(
-                      onPressed: () {
-                        setState(() {
-                          _isSearching = true;
-                        });
-                      },
-                      backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.9),
-                      foregroundColor: primaryColor,
-                      child: const Icon(Icons.search, size: 20),
-                    ),
+          child: _isSearching
+              ? Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B).withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
-          ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        autofocus: true,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search vehicle by model or plate...',
+                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                          prefixIcon: Icon(Icons.search, color: primaryColor),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                _isSearching = false;
+                                _searchQuery = '';
+                              });
+                            },
+                          ),
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          fillColor: Colors.transparent,
+                        ),
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                      ),
+                      if (_searchQuery.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: ListView(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            children: vehicles
+                                .where((v) =>
+                                    (v['model'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                                    (v['licensePlate'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
+                                .map((v) {
+                              return ListTile(
+                                dense: true,
+                                title: Text(v['model'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                subtitle: Text(v['licensePlate'] ?? '', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11)),
+                                trailing: _buildStatusBadge(v['status'] ?? 'available'),
+                                onTap: () {
+                                  final lat = v['latitude'] as double? ?? 9.9312;
+                                  final lng = v['longitude'] as double? ?? 76.2673;
+                                  _centerMapOn(lat, lng, v);
+                                  setState(() {
+                                    _isSearching = false;
+                                    _searchQuery = '';
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                )
+              : Align(
+                  alignment: Alignment.topRight,
+                  child: FloatingActionButton.small(
+                    onPressed: () {
+                      setState(() {
+                        _isSearching = true;
+                      });
+                    },
+                    backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.9),
+                    foregroundColor: primaryColor,
+                    child: const Icon(Icons.search, size: 20),
+                  ),
+                ),
         ),
 
         // Selected Vehicle Info Card floating overlay
