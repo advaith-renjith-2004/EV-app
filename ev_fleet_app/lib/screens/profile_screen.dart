@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -206,12 +207,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final currentTheme = Theme.of(context);
     final isDark = themeProvider.themeMode == ThemeMode.dark;
+    final primaryColor = themeProvider.primaryColor;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FLEET MEMBER PROFILE'),
+        backgroundColor: isDark ? const Color(0xFF131B2E).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+        title: const Text(
+          'FLEET MEMBER PROFILE',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -220,7 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading && _userData == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -232,17 +244,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: currentTheme.primaryColor, width: 2.5),
+                            border: Border.all(color: primaryColor, width: 2.5),
                             boxShadow: [
                               BoxShadow(
-                                color: currentTheme.primaryColor.withValues(alpha: 0.25),
-                                blurRadius: 20,
+                                color: primaryColor.withValues(alpha: 0.3),
+                                blurRadius: 25,
+                                spreadRadius: 2,
                               )
                             ],
                           ),
                           child: CircleAvatar(
                             radius: 54,
-                            backgroundColor: const Color(0xFF1E293B),
+                            backgroundColor: isDark ? const Color(0xFF131B2E) : Colors.grey.shade200,
                             backgroundImage: _selectedAvatarUrl != null
                                 ? (_selectedAvatarUrl!.startsWith('data:image')
                                     ? MemoryImage(base64Decode(_selectedAvatarUrl!.split(',')[1]))
@@ -258,13 +271,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: currentTheme.primaryColor,
+                                color: primaryColor,
                                 shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 6,
+                                  )
+                                ],
                               ),
                               child: Icon(
-                                Icons.camera_alt,
+                                Icons.camera_alt_rounded,
                                 size: 18,
-                                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                color: isDark ? const Color(0xFF0A0F1D) : Colors.white,
                               ),
                             ),
                           ),
@@ -272,33 +291,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 36),
 
                   // User metadata Info Cards
                   _buildProfileCard(
                     title: 'FLEET IDENTITY',
                     icon: Icons.badge_outlined,
+                    isDark: isDark,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildMetaRow('Auth Email', _userData?['email'] ?? 'N/A'),
-                        const Divider(color: Colors.white10, height: 20),
-                        _buildMetaRow('System Role', (_userData?['role'] ?? 'N/A').toString().toUpperCase()),
+                        _buildMetaRow('Auth Email', _userData?['email'] ?? 'N/A', isDark),
+                        const Divider(color: Colors.white10, height: 24),
+                        _buildMetaRow('System Role', (_userData?['role'] ?? 'N/A').toString().toUpperCase(), isDark),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Edit Username Card
                   _buildProfileCard(
                     title: 'EDIT SHIFT USERNAME',
                     icon: Icons.person_outline,
+                    isDark: isDark,
                     child: Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                             decoration: const InputDecoration(
                               labelText: 'Display Name',
                               hintText: 'Enter username',
@@ -310,29 +331,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onPressed: _isLoading ? null : _saveProfileChanges,
                           icon: const Icon(Icons.check),
                           style: IconButton.styleFrom(
-                            backgroundColor: currentTheme.primaryColor,
-                            foregroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            backgroundColor: primaryColor,
+                            foregroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.all(12),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Themes Settings Card
                   _buildProfileCard(
                     title: 'COSMETIC CUSTOMIZATION',
                     icon: Icons.palette_outlined,
+                    isDark: isDark,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Dark Dashboard Mode', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                            Text(
+                              'Dark Dashboard Mode',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
                             Switch(
                               value: isDark,
-                              activeThumbColor: currentTheme.primaryColor,
+                              activeThumbColor: primaryColor,
+                              activeTrackColor: primaryColor.withValues(alpha: 0.3),
                               onChanged: (val) {
                                 themeProvider.toggleThemeMode(val);
                               },
@@ -340,11 +371,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const Divider(color: Colors.white10, height: 24),
-                        const Text(
+                        Text(
                           'Accent Color Theme:',
-                          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         SizedBox(
                           height: 48,
                           child: ListView.builder(
@@ -365,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected ? Colors.white : Colors.transparent,
-                                      width: 2,
+                                      width: 2.5,
                                     ),
                                     boxShadow: [
                                       if (isSelected)
@@ -394,13 +428,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required IconData icon,
     required Widget child,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -427,14 +469,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMetaRow(String label, String value) {
+  Widget _buildMetaRow(String label, String value, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.blueGrey.shade700,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         Text(
           value,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
         ),
       ],
     );

@@ -1,9 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
 import '../services/geofencing_service.dart';
+import '../services/theme_provider.dart';
 import 'profile_screen.dart';
 
 class DriverDashboard extends StatefulWidget {
@@ -205,14 +208,23 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF00FFCC); // Neon Cyan
-    final secondaryColor = const Color(0xFF3B82F6); // Electric Blue
-    final backgroundColor = const Color(0xFF0F172A); // Deep Slate
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final primaryColor = themeProvider.primaryColor;
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final secondaryColor = isDark ? const Color(0xFF3B82F6) : const Color(0xFF1D4ED8);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
         title: Row(
           children: [
             ClipRRect(
@@ -264,79 +276,99 @@ class _DriverDashboardState extends State<DriverDashboard> {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [secondaryColor.withValues(alpha: 0.1), const Color(0xFF1E293B)]),
+            gradient: LinearGradient(
+              colors: [
+                secondaryColor.withValues(alpha: 0.12),
+                Theme.of(context).cardColor.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: secondaryColor.withValues(alpha: 0.2)),
+            border: Border.all(color: secondaryColor.withValues(alpha: 0.15)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Welcome, Driver',
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                'Welcome back, Driver',
+                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 0.2),
               ),
               const SizedBox(height: 8),
               Text(
                 'Email: ${_currentUser?.email ?? 'N/A'}',
-                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
               ),
               const Divider(color: Colors.white10, height: 24),
               const Text(
                 'Ready to start your shift? Scan the vehicle QR code located on the dashboard or windshield to check in and initialize telematics.',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
               ),
             ],
           ),
         ),
         const SizedBox(height: 40),
 
-        // QR Scanner Button
+        // QR Scanner Button (Frosted glass card style)
         Container(
           height: 120,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: secondaryColor.withValues(alpha: 0.2),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+                color: secondaryColor.withValues(alpha: 0.15),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
               )
             ],
           ),
-          child: ElevatedButton(
-            onPressed: _openQrScanner,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E293B),
-              side: BorderSide(color: secondaryColor.withValues(alpha: 0.4), width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              padding: EdgeInsets.zero,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.qr_code_scanner, size: 40, color: secondaryColor),
-                const SizedBox(width: 20),
-                Column(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: ElevatedButton(
+                onPressed: _openQrScanner,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.75),
+                  side: BorderSide(color: secondaryColor.withValues(alpha: 0.35), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  padding: EdgeInsets.zero,
+                ),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'SCAN QR CODE',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.0),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: secondaryColor.withValues(alpha: 0.15),
+                      ),
+                      child: Icon(Icons.qr_code_scanner_rounded, size: 36, color: secondaryColor),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Camera scanner check-in',
-                      style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                    const SizedBox(width: 20),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'SCAN QR CODE',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Camera scanner checkout',
+                          style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 48),
 
         // Quick Manual Bypass for Local Development/Testing
         Row(
@@ -346,22 +378,22 @@ class _DriverDashboardState extends State<DriverDashboard> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'DEVELOPMENT SHIFT BYPASS',
-                style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
               ),
             ),
             const Expanded(child: Divider(color: Colors.white10)),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: () => _checkoutVehicle('KL01CB1234'),
-          icon: const Icon(Icons.flash_on, size: 18),
+          icon: const Icon(Icons.flash_on_rounded, size: 18),
           label: const Text('CHECKOUT SIMULATOR VEHICLE (KL01CB1234)'),
           style: OutlinedButton.styleFrom(
             foregroundColor: primaryColor,
             side: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            padding: const EdgeInsets.symmetric(vertical: 18),
           ),
         ),
       ],
@@ -370,6 +402,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   Widget _buildActiveShiftView(Color primaryColor) {
     final vehicleId = _activeVehicle?['id'] ?? 'KL01CB1234';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('vehicles').doc(vehicleId).snapshots(),
@@ -397,137 +430,221 @@ class _DriverDashboardState extends State<DriverDashboard> {
           children: [
             // Active Shift Card
             Container(
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('ACTIVE SHIFT VEHICLE', style: TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 6),
-                          Text(docData['model'] ?? 'Tata Nexon EV', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                          Text(docData['licensePlate'] ?? 'KL-01-CB-1234', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13)),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF0F172A)),
-                        child: const Icon(Icons.electric_car, color: Colors.blueAccent, size: 28),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Colors.white10, height: 32),
-
-                  // Real-time telemetry indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildTelemetryIndicator(
-                        'BATTERY',
-                        '${soc.toStringAsFixed(1)}%',
-                        soc > 30 ? const Color(0xFF10B981) : Colors.redAccent,
-                        Icons.battery_charging_full_rounded,
-                      ),
-                      _buildTelemetryIndicator(
-                        'SPEED',
-                        '${speed.toStringAsFixed(1)} km/h',
-                        Colors.cyan,
-                        Icons.speed,
-                      ),
-                    ],
-                  ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  )
                 ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.75 : 0.9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.25)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'ACTIVE SHIFT VEHICLE',
+                                  style: TextStyle(
+                                    color: Colors.blueAccent,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  docData['model'] ?? 'Tata Nexon EV',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  docData['licensePlate'] ?? 'KL-01-CB-1234',
+                                  style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark ? const Color(0xFF0A0F1D) : Colors.black.withValues(alpha: 0.04),
+                                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.15)),
+                              ),
+                              child: const Icon(Icons.electric_car_rounded, color: Colors.blueAccent, size: 28),
+                            ),
+                          ],
+                        ),
+                        const Divider(color: Colors.white10, height: 32),
+
+                        // Real-time telemetry indicators
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Expanded(
+                              child: _buildTelemetryIndicator(
+                                'BATTERY',
+                                '${soc.toStringAsFixed(1)}%',
+                                soc > 30 ? const Color(0xFF10B981) : Colors.redAccent,
+                                Icons.battery_charging_full_rounded,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTelemetryIndicator(
+                                'SPEED',
+                                '${speed.toStringAsFixed(1)} km/h',
+                                Colors.cyan,
+                                Icons.speed_rounded,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
 
             // Geofence Return Card
             Container(
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isAtDepot ? const Color(0xFF10B981).withValues(alpha: 0.3) : Colors.amber.withValues(alpha: 0.3),
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        isAtDepot ? Icons.gpp_good : Icons.gpp_maybe,
-                        color: isAtDepot ? const Color(0xFF10B981) : Colors.amber,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        isAtDepot ? 'Geofence Check Passed' : 'Geofence Check Pending',
-                        style: TextStyle(
-                          color: isAtDepot ? const Color(0xFF10B981) : Colors.amber,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Depot Center: (${GeofencingService.depotLat}, ${GeofencingService.depotLng})\n'
-                    'Current GPS: (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})\n'
-                    'Distance to Yard: ${distanceToDepot.toStringAsFixed(1)} meters',
-                    style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, height: 1.5, fontFamily: 'monospace'),
-                  ),
-                  const Divider(color: Colors.white10, height: 32),
-
-                  if (!isAtDepot)
-                    Text(
-                      '⚠️ Return vehicle to within 50 meters of the central Taxi Depot yard to enable check-in. Driving simulator loop will automatically return to yard eventually.',
-                      style: TextStyle(color: Colors.amber.shade300, fontSize: 12),
-                      textAlign: TextAlign.center,
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  // End Shift Button (Condition: isAtDepot)
-                  Container(
-                    height: 50,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        if (isAtDepot)
-                          BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          )
+                      color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.75 : 0.9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isAtDepot ? const Color(0xFF10B981).withValues(alpha: 0.25) : Colors.amber.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: (isAtDepot ? const Color(0xFF10B981) : Colors.amber).withValues(alpha: 0.12),
+                              ),
+                              child: Icon(
+                                isAtDepot ? Icons.gpp_good_rounded : Icons.gpp_maybe_rounded,
+                                color: isAtDepot ? const Color(0xFF10B981) : Colors.amber,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              isAtDepot ? 'Geofence Check Passed' : 'Geofence Check Pending',
+                              style: TextStyle(
+                                color: isAtDepot ? const Color(0xFF10B981) : Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0A0F1D) : Colors.black.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Depot Center: (${GeofencingService.depotLat}, ${GeofencingService.depotLng})\n'
+                            'Current GPS: (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})\n'
+                            'Distance to Yard: ${distanceToDepot.toStringAsFixed(1)} meters',
+                            style: TextStyle(
+                              color: isDark ? Colors.blueGrey.shade400 : Colors.blueGrey.shade700,
+                              fontSize: 12,
+                              height: 1.5,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Divider(color: Colors.white10, height: 32),
+
+                        if (!isAtDepot) ...[
+                          Text(
+                            '⚠️ Return vehicle to within 50 meters of the central Taxi Depot yard to enable check-in. Driving simulator loop will automatically return to yard eventually.',
+                            style: TextStyle(color: Colors.amber.shade300, fontSize: 12, height: 1.4, fontWeight: FontWeight.w500),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+
+                        // End Shift Button (Condition: isAtDepot)
+                        Container(
+                          height: 52,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              if (isAtDepot)
+                                BoxShadow(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                )
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: isAtDepot ? _returnVehicle : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              foregroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.white,
+                              disabledBackgroundColor: isDark ? const Color(0xFF131B2E) : Colors.black.withValues(alpha: 0.06),
+                              disabledForegroundColor: Colors.blueGrey.shade600,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              isAtDepot ? 'END SHIFT & CHECKIN' : 'LOCKED: MUST RETURN TO DEPOT',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    child: ElevatedButton(
-                      onPressed: isAtDepot ? _returnVehicle : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        disabledBackgroundColor: const Color(0xFF1E293B), // Match button panel
-                        disabledForegroundColor: Colors.blueGrey.shade600,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text(
-                        isAtDepot ? 'END SHIFT & CHECKIN' : 'LOCKED: MUST RETURN TO DEPOT',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                      ),
-                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -537,14 +654,52 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   Widget _buildTelemetryIndicator(String label, String value, Color color, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 8),
-        Text(label, style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 10, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900)),
-      ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0A0F1D) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.04),
+            blurRadius: 10,
+            spreadRadius: 1,
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.1),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.blueGrey.shade400,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

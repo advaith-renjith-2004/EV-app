@@ -49,6 +49,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     final idController = TextEditingController();
     final plateController = TextEditingController();
     final modelController = TextEditingController();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final primaryColor = themeProvider.primaryColor;
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
     bool isLoading = false;
 
     showDialog(
@@ -57,21 +60,17 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.electric_car, color: Color(0xFF00FFCC)),
-                  SizedBox(width: 10),
+                  Icon(Icons.electric_car, color: primaryColor),
+                  const SizedBox(width: 10),
                   Text(
                     'ADD NEW VEHICLE',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 16,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -84,16 +83,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                     children: [
                       TextFormField(
                         controller: idController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
+                        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                        decoration: const InputDecoration(
                           labelText: 'Vehicle ID (e.g., v001)',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF00FFCC)),
-                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -105,16 +97,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: plateController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
+                        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                        decoration: const InputDecoration(
                           labelText: 'License Plate (e.g., KL-01-CB-1234)',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF00FFCC)),
-                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -126,16 +111,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: modelController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
+                        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                        decoration: const InputDecoration(
                           labelText: 'Vehicle Model (e.g., Tata Nexon EV)',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF00FFCC)),
-                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -153,7 +131,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                   onPressed: isLoading ? null : () => Navigator.pop(context),
                   child: Text(
                     'CANCEL',
-                    style: TextStyle(color: Colors.blueGrey.shade400),
+                    style: TextStyle(color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ElevatedButton(
@@ -196,16 +174,18 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00FFCC),
-                    foregroundColor: const Color(0xFF0F172A),
+                    backgroundColor: primaryColor,
+                    foregroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.white,
                   ),
                   child: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F172A)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isDark ? const Color(0xFF0A0F1D) : Colors.white,
+                            ),
                           ),
                         )
                       : const Text('ADD'),
@@ -409,44 +389,86 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     required int maintenance,
     required Color primaryColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           )
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem('TOTAL', total.toString(), Colors.white),
-          _buildStatItem('RENTED', rented.toString(), const Color(0xFF3B82F6)),
-          _buildStatItem('AVAILABLE', available.toString(), const Color(0xFF10B981)),
-          _buildStatItem('OFFLINE', maintenance.toString(), Colors.redAccent),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.7 : 0.85),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem('TOTAL', total.toString(), isDark ? Colors.white : const Color(0xFF0F172A), Colors.blueGrey),
+                _buildStatItem('RENTED', rented.toString(), const Color(0xFF3B82F6), const Color(0xFF3B82F6)),
+                _buildStatItem('AVAILABLE', available.toString(), const Color(0xFF10B981), const Color(0xFF10B981)),
+                _buildStatItem('OFFLINE', maintenance.toString(), Colors.redAccent, Colors.redAccent),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color valueColor) {
+  Widget _buildStatItem(String label, String value, Color valueColor, Color badgeColor) {
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: badgeColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: badgeColor.withValues(alpha: 0.6),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.blueGrey.shade400,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           value,
-          style: TextStyle(color: valueColor, fontSize: 18, fontWeight: FontWeight.w900),
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.5,
+          ),
         ),
       ],
     );
@@ -550,92 +572,104 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
           left: 16,
           right: 16,
           child: _isSearching
-              ? Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        autofocus: true,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search vehicle by model or plate...',
-                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                          prefixIcon: Icon(Icons.search, color: primaryColor),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-                            onPressed: () {
-                              setState(() {
-                                _isSearching = false;
-                                _searchQuery = '';
-                              });
-                            },
-                          ),
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          fillColor: Colors.transparent,
-                        ),
-                        onChanged: (val) {
-                          setState(() {
-                            _searchQuery = val;
-                          });
-                        },
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 15,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
-                      if (_searchQuery.isNotEmpty)
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 200),
-                          child: ListView(
-                            shrinkWrap: true,
-                            padding: EdgeInsets.zero,
-                            children: vehicles
-                                .where((v) =>
-                                    (v['model'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                                    (v['licensePlate'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
-                                .map((v) {
-                              return ListTile(
-                                dense: true,
-                                title: Text(v['model'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                                subtitle: Text(v['licensePlate'] ?? '', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11)),
-                                trailing: _buildStatusBadge(v['status'] ?? 'available'),
-                                onTap: () {
-                                  final lat = v['latitude'] as double? ?? 9.9312;
-                                  final lng = v['longitude'] as double? ?? 76.2673;
-                                  _centerMapOn(lat, lng, v);
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextField(
+                            autofocus: true,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Search vehicle by model or plate...',
+                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                              prefixIcon: Icon(Icons.search, color: primaryColor),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                                onPressed: () {
                                   setState(() {
                                     _isSearching = false;
                                     _searchQuery = '';
                                   });
                                 },
-                              );
-                            }).toList(),
+                              ),
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              fillColor: Colors.transparent,
+                            ),
+                            onChanged: (val) {
+                              setState(() {
+                                _searchQuery = val;
+                              });
+                            },
                           ),
-                        ),
-                    ],
+                          if (_searchQuery.isNotEmpty)
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: ListView(
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
+                                children: vehicles
+                                    .where((v) =>
+                                        (v['model'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                                        (v['licensePlate'] as String? ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
+                                    .map((v) {
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(v['model'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                    subtitle: Text(v['licensePlate'] ?? '', style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11)),
+                                    trailing: _buildStatusBadge(v['status'] ?? 'available'),
+                                    onTap: () {
+                                      final lat = v['latitude'] as double? ?? 9.9312;
+                                      final lng = v['longitude'] as double? ?? 76.2673;
+                                      _centerMapOn(lat, lng, v);
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 )
               : Align(
                   alignment: Alignment.topRight,
-                  child: FloatingActionButton.small(
-                    onPressed: () {
-                      setState(() {
-                        _isSearching = true;
-                      });
-                    },
-                    backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.9),
-                    foregroundColor: primaryColor,
-                    child: const Icon(Icons.search, size: 20),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: FloatingActionButton.small(
+                        onPressed: () {
+                          setState(() {
+                            _isSearching = true;
+                          });
+                        },
+                        backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.8),
+                        foregroundColor: primaryColor,
+                        child: const Icon(Icons.search, size: 20),
+                      ),
+                    ),
                   ),
                 ),
         ),
@@ -646,94 +680,102 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             bottom: 20,
             left: 20,
             right: 20,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withValues(alpha: 0.9), // Slate 800
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 15, offset: const Offset(0, 5))
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            _selectedVehicle!['model'] ?? 'Tata Nexon EV',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedVehicle!['model'] ?? 'Tata Nexon EV',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _selectedVehicle!['licensePlate'] ?? 'KL-01-CB-1234',
+                                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _selectedVehicle!['licensePlate'] ?? 'KL-01-CB-1234',
-                            style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                          _buildStatusBadge(_selectedVehicle!['status'] ?? 'available'),
+                        ],
+                      ),
+                      const Divider(color: Colors.white10, height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildTelemetryDetail('BATTERY', '${(_selectedVehicle!['socPercent'] as double? ?? 0.0).toStringAsFixed(1)}%',
+                              (_selectedVehicle!['socPercent'] as double? ?? 0.0) > 30 ? const Color(0xFF10B981) : Colors.redAccent),
+                          _buildTelemetryDetail('SPEED', '${(_selectedVehicle!['speed'] as double? ?? 0.0).toStringAsFixed(1)} km/h', Colors.cyan),
+                          _buildTelemetryDetail('LOCATION',
+                              '${(_selectedVehicle!['latitude'] as double? ?? 0.0).toStringAsFixed(3)}, ${(_selectedVehicle!['longitude'] as double? ?? 0.0).toStringAsFixed(3)}',
+                              Colors.white),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedVehicle = null;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text('DISMISS'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                _mapController.move(
+                                  LatLng(
+                                    _selectedVehicle!['latitude'] as double? ?? 9.9312,
+                                    _selectedVehicle!['longitude'] as double? ?? 76.2673,
+                                  ),
+                                  16.0,
+                                );
+                              },
+                              icon: const Icon(Icons.gps_fixed, size: 16),
+                              label: const Text('CENTER MAP'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: const Color(0xFF0F172A),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      _buildStatusBadge(_selectedVehicle!['status'] ?? 'available'),
                     ],
                   ),
-                  const Divider(color: Colors.white10, height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildTelemetryDetail('BATTERY', '${(_selectedVehicle!['socPercent'] as double? ?? 0.0).toStringAsFixed(1)}%',
-                          (_selectedVehicle!['socPercent'] as double? ?? 0.0) > 30 ? const Color(0xFF10B981) : Colors.redAccent),
-                      _buildTelemetryDetail('SPEED', '${(_selectedVehicle!['speed'] as double? ?? 0.0).toStringAsFixed(1)} km/h', Colors.cyan),
-                      _buildTelemetryDetail('LOCATION',
-                          '${(_selectedVehicle!['latitude'] as double? ?? 0.0).toStringAsFixed(3)}, ${(_selectedVehicle!['longitude'] as double? ?? 0.0).toStringAsFixed(3)}',
-                          Colors.white),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedVehicle = null;
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white24),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text('DISMISS'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            _mapController.move(
-                              LatLng(
-                                _selectedVehicle!['latitude'] as double? ?? 9.9312,
-                                _selectedVehicle!['longitude'] as double? ?? 76.2673,
-                              ),
-                              16.0,
-                            );
-                          },
-                          icon: const Icon(Icons.gps_fixed, size: 16),
-                          label: const Text('CENTER MAP'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: const Color(0xFF0F172A),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -753,6 +795,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   }
 
   Widget _buildListView(List<Map<String, dynamic>> vehicles, Color primaryColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: vehicles.length,
@@ -776,31 +819,31 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         }
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               )
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
                   left: BorderSide(
                     color: statusColor,
-                    width: 5,
+                    width: 6,
                   ),
                 ),
               ),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -812,26 +855,30 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(12),
+                              color: isDark ? const Color(0xFF0A0F1D) : Colors.black.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
                               Icons.electric_car,
-                              color: status == 'rented' ? const Color(0xFF3B82F6) : primaryColor,
+                              color: statusColor,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 model,
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 4),
                               Text(
                                 plate,
-                                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
+                                style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -840,37 +887,41 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                       _buildStatusBadge(status),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Battery charge UI
                   Row(
                     children: [
                       Icon(
                         soc > 80
-                            ? Icons.battery_full
+                            ? Icons.battery_full_rounded
                             : soc > 30
                                 ? Icons.battery_charging_full_rounded
-                                : Icons.battery_alert,
+                                : Icons.battery_alert_rounded,
                         color: soc > 80
                             ? const Color(0xFF10B981)
                             : soc > 30
                                 ? Colors.amber
                                 : Colors.redAccent,
-                        size: 16,
+                        size: 18,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
                         'Battery Charge: ${soc.toStringAsFixed(1)}%',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.blueGrey.shade800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
                       value: soc / 100.0,
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.black.withValues(alpha: 0.06),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         soc > 80
                             ? const Color(0xFF10B981)
@@ -878,10 +929,10 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                                 ? Colors.amber
                                 : Colors.redAccent,
                       ),
-                      minHeight: 6,
+                      minHeight: 8,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   // Tracking Actions
                   Row(
@@ -889,21 +940,21 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.speed, color: Colors.cyan, size: 14),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.speed_rounded, color: Colors.cyan, size: 16),
+                          const SizedBox(width: 6),
                           Text(
                             '${speed.toStringAsFixed(1)} km/h',
-                            style: const TextStyle(color: Colors.cyan, fontSize: 12, fontWeight: FontWeight.w600),
+                            style: const TextStyle(color: Colors.cyan, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       TextButton.icon(
                         onPressed: () => _centerMapOn(lat, lng, vehicle),
-                        icon: const Icon(Icons.my_location, size: 14),
+                        icon: const Icon(Icons.my_location_rounded, size: 16),
                         label: const Text('TRACK ON MAP'),
                         style: TextButton.styleFrom(
                           foregroundColor: primaryColor,
-                          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                         ),
                       )
                     ],
