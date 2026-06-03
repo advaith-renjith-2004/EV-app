@@ -33,6 +33,11 @@ class FirestoreService {
     return doc.exists ? doc.data() : null;
   }
 
+  /// Stream user document to react to profile provisioning dynamically
+  Stream<Map<String, dynamic>?> getUserDataStream(String uid) {
+    return _db.collection('users').doc(uid).snapshots().map((doc) => doc.exists ? doc.data() : null);
+  }
+
   /// Creates a new user profile upon registration
   Future<void> createUserProfile(String uid, String name, String email, String role) async {
     await _db.collection('users').doc(uid).set({

@@ -29,9 +29,9 @@ class AuthGate extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Fetch User Role from Firestore
-        return FutureBuilder<Map<String, dynamic>?>(
-          future: FirestoreService().getUserData(user.uid),
+        // Fetch User Role from Firestore in real-time
+        return StreamBuilder<Map<String, dynamic>?>(
+          stream: FirestoreService().getUserDataStream(user.uid),
           builder: (context, userSnapshot) {
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
