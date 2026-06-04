@@ -837,6 +837,14 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   }
 
   Widget _buildMapView(List<Map<String, dynamic>> vehicles, Color primaryColor, Color secondaryColor) {
+    // Keep the selected vehicle state synchronized with the latest stream telemetry
+    final activeVehicle = _selectedVehicle != null
+        ? vehicles.firstWhere(
+            (v) => v['id'] == _selectedVehicle!['id'],
+            orElse: () => _selectedVehicle!,
+          )
+        : null;
+
     // Convert Firestore vehicles data to Map markers
     final markers = vehicles.map((v) {
       final lat = v['latitude'] as double? ?? 9.9312;
@@ -1037,7 +1045,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         ),
 
         // Selected Vehicle Info Card floating overlay
-        if (_selectedVehicle != null)
+        if (activeVehicle != null)
           Positioned(
             bottom: 20,
             left: 20,
@@ -1067,28 +1075,28 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _selectedVehicle!['model'] ?? 'Tata Nexon EV',
+                                activeVehicle['model'] ?? 'Tata Nexon EV',
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _selectedVehicle!['licensePlate'] ?? 'KL-01-CB-1234',
+                                activeVehicle['licensePlate'] ?? 'KL-01-CB-1234',
                                 style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 12),
                               ),
                             ],
                           ),
-                          _buildStatusBadge(_selectedVehicle!['status'] ?? 'available'),
+                          _buildStatusBadge(activeVehicle['status'] ?? 'available'),
                         ],
                       ),
                       const Divider(color: Colors.white10, height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildTelemetryDetail('BATTERY', '${(_selectedVehicle!['socPercent'] as double? ?? 0.0).toStringAsFixed(1)}%',
-                              (_selectedVehicle!['socPercent'] as double? ?? 0.0) > 30 ? const Color(0xFF10B981) : Colors.redAccent),
-                          _buildTelemetryDetail('SPEED', '${(_selectedVehicle!['speed'] as double? ?? 0.0).toStringAsFixed(1)} km/h', Colors.cyan),
+                          _buildTelemetryDetail('BATTERY', '${(activeVehicle['socPercent'] as double? ?? 0.0).toStringAsFixed(1)}%',
+                              (activeVehicle['socPercent'] as double? ?? 0.0) > 30 ? const Color(0xFF10B981) : Colors.redAccent),
+                          _buildTelemetryDetail('SPEED', '${(activeVehicle['speed'] as double? ?? 0.0).toStringAsFixed(1)} km/h', Colors.cyan),
                           _buildTelemetryDetail('LOCATION',
-                              '${(_selectedVehicle!['latitude'] as double? ?? 0.0).toStringAsFixed(3)}, ${(_selectedVehicle!['longitude'] as double? ?? 0.0).toStringAsFixed(3)}',
+                              '${(activeVehicle['latitude'] as double? ?? 0.0).toStringAsFixed(3)}, ${(activeVehicle['longitude'] as double? ?? 0.0).toStringAsFixed(3)}',
                               Colors.white),
                         ],
                       ),
@@ -1117,8 +1125,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                               onPressed: () {
                                 _mapController.move(
                                   LatLng(
-                                    _selectedVehicle!['latitude'] as double? ?? 9.9312,
-                                    _selectedVehicle!['longitude'] as double? ?? 76.2673,
+                                    activeVehicle['latitude'] as double? ?? 9.9312,
+                                    activeVehicle['longitude'] as double? ?? 76.2673,
                                   ),
                                   16.0,
                                 );
