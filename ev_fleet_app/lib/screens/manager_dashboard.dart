@@ -488,6 +488,10 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                   ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
                   : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.advaith.evfleet',
+              tileProvider: NetworkTileProvider(),
+              tileDisplay: const TileDisplay.instantaneous(),
+              panBuffer: 2,
+              keepBuffer: 3,
             ),
             // Layer markers directly on top of tiles within the same map
             MarkerLayer(
