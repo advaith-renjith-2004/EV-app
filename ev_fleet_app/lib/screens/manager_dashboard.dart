@@ -393,6 +393,9 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   }
 
   Widget _buildMapView(List<Map<String, dynamic>> vehicles, Color primaryColor, Color secondaryColor) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+
     // Keep the selected vehicle state synchronized with the latest stream telemetry
     final activeVehicle = _selectedVehicle != null
         ? vehicles.firstWhere(
@@ -480,18 +483,11 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             },
           ),
           children: [
-            // Dark Inversion Matrix applied directly inside map children
-            ColorFiltered(
-              colorFilter: const ColorFilter.matrix([
-                -0.8, 0, 0, 0, 255,
-                0, -0.8, 0, 0, 255,
-                0, 0, -0.75, 0, 255,
-                0, 0, 0, 1, 0,
-              ]),
-              child: TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.advaith.evfleet',
-              ),
+            TileLayer(
+              urlTemplate: isDark
+                  ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                  : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.advaith.evfleet',
             ),
             // Layer markers directly on top of tiles within the same map
             MarkerLayer(
