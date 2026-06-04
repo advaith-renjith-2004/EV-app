@@ -202,8 +202,17 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                             hintText: 'Enter phone number',
                           ),
                           validator: (value) {
-                            if (isRented && (value == null || value.trim().isEmpty)) {
-                              return "Please enter phone number";
+                            if (isRented) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Please enter phone number";
+                              }
+                              // Clean formatting characters like spaces, hyphens, plus signs, or parentheses
+                              final cleaned = value.trim().replaceAll(RegExp(r'[-\s()+]'), '');
+                              // Verifies standard 10-digit mobile format (with optional 91 prefix)
+                              final phoneRegex = RegExp(r'^(?:91)?[6-9][0-9]{9}$');
+                              if (!phoneRegex.hasMatch(cleaned)) {
+                                return 'Please enter a valid 10-digit phone number';
+                              }
                             }
                             return null;
                           },
