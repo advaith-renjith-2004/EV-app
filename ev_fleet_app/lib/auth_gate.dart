@@ -158,6 +158,7 @@ class AuthGate extends StatelessWidget {
                   ),
                   child: SelectableText(
                     'Firebase Project: ev-fleet-advaith-2026\n\n'
+                    'Actual Error: $errorDetails\n\n'
                     'Click "Create Database" at:\n'
                     'https://console.firebase.google.com/project/ev-fleet-advaith-2026/firestore',
                     style: const TextStyle(
@@ -171,14 +172,28 @@ class AuthGate extends StatelessWidget {
                 const SizedBox(height: 24),
                 // Temporary role bypass button for offline testing
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // Try to create the user profile if missing
-                    FirestoreService().createUserProfile(
-                      user.uid,
-                      user.displayName ?? 'Fleet Member',
-                      user.email ?? '',
-                      'driver', // Bypass as driver by default
-                    );
+                  onPressed: () async {
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Attempting to provision driver profile...'), duration: Duration(seconds: 2)),
+                      );
+                      await FirestoreService().createUserProfile(
+                        user.uid,
+                        user.displayName ?? 'Fleet Member',
+                        user.email ?? '',
+                        'driver',
+                      );
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to provision: $e'),
+                            backgroundColor: Colors.redAccent,
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
+                    }
                   },
                   icon: const Icon(Icons.flash_on, size: 18),
                   label: const Text('PROVISION PROFILE AS DRIVER'),
@@ -193,13 +208,28 @@ class AuthGate extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: () {
-                    FirestoreService().createUserProfile(
-                      user.uid,
-                      user.displayName ?? 'Fleet Manager',
-                      user.email ?? '',
-                      'manager', // Bypass as manager
-                    );
+                  onPressed: () async {
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Attempting to provision manager profile...'), duration: Duration(seconds: 2)),
+                      );
+                      await FirestoreService().createUserProfile(
+                        user.uid,
+                        user.displayName ?? 'Fleet Manager',
+                        user.email ?? '',
+                        'manager',
+                      );
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to provision: $e'),
+                            backgroundColor: Colors.redAccent,
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
+                    }
                   },
                   icon: const Icon(Icons.admin_panel_settings, size: 18),
                   label: const Text('PROVISION PROFILE AS MANAGER'),
