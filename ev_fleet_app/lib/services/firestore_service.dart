@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -29,18 +30,94 @@ class FirestoreService {
 
   /// Fetches the user document to determine role ('manager' vs 'driver')
   Future<Map<String, dynamic>?> getUserData(String uid) async {
-    final doc = await _db.collection('users').doc(uid).get();
-    return doc.exists ? doc.data() : null;
+    // Check manager collection first
+    var doc = await _db.collection('manager').doc(uid).get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      data['role'] = 'manager';
+      return data;
+    }
+
+    // Check driver collection
+    doc = await _db.collection('driver').doc(uid).get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      data['role'] = 'driver';
+      return data;
+    }
+
+    return null;
   }
 
   /// Stream user document to react to profile provisioning dynamically
   Stream<Map<String, dynamic>?> getUserDataStream(String uid) {
-    return _db.collection('users').doc(uid).snapshots().map((doc) => doc.exists ? doc.data() : null);
+    final controller = StreamController<Map<String, dynamic>?>();
+    StreamSubscription? managerSub;
+    StreamSubscription? driverSub;
+
+    // Do a quick check on where the user document exists to setup the snapshots subscription
+    _db.collection('manager').doc(uid).get().then((managerDoc) {
+      if (managerDoc.exists) {
+        managerSub = _db.collection('manager').doc(uid).snapshots().listen(
+          (snap) {
+            if (snap.exists) {
+              final data = snap.data();
+              if (data != null) {
+                data['role'] = 'manager';
+                controller.add(data);
+              }
+            } else {
+              controller.add(null);
+            }
+          },
+          onError: controller.addError,
+        );
+      } else {
+        driverSub = _db.collection('driver').doc(uid).snapshots().listen(
+          (snap) {
+            if (snap.exists) {
+              final data = snap.data();
+              if (data != null) {
+                data['role'] = 'driver';
+                controller.add(data);
+              }
+            } else {
+              controller.add(null);
+            }
+          },
+          onError: controller.addError,
+        );
+      }
+    }).catchError((e) {
+      // Gracefully fall back to subscribing to the driver stream if manager check fails
+      driverSub = _db.collection('driver').doc(uid).snapshots().listen(
+        (snap) {
+          if (snap.exists) {
+            final data = snap.data();
+            if (data != null) {
+              data['role'] = 'driver';
+              controller.add(data);
+            }
+          } else {
+            controller.add(null);
+          }
+        },
+        onError: controller.addError,
+      );
+    });
+
+    controller.onCancel = () {
+      managerSub?.cancel();
+      driverSub?.cancel();
+    };
+
+    return controller.stream;
   }
 
   /// Creates a new user profile upon registration
   Future<void> createUserProfile(String uid, String name, String email, String role) async {
-    await _db.collection('users').doc(uid).set({
+    final collectionName = (role == 'manager') ? 'manager' : 'driver';
+    await _db.collection(collectionName).doc(uid).set({
       'uid': uid,
       'name': name,
       'email': email,
@@ -53,8 +130,21 @@ class FirestoreService {
     final updates = <String, dynamic>{};
     if (name != null) updates['name'] = name;
     if (photoUrl != null) updates['photoUrl'] = photoUrl;
-    if (updates.isNotEmpty) {
-      await _db.collection('users').doc(uid).update(updates);
+    
+    if (updates.isEmpty) return;
+
+    // Check manager collection first
+    final managerDoc = await _db.collection('manager').doc(uid).get();
+    if (managerDoc.exists) {
+      await _db.collection('manager').doc(uid).update(updates);
+      return;
+    }
+
+    // Check driver collection
+    final driverDoc = await _db.collection('driver').doc(uid).get();
+    if (driverDoc.exists) {
+      await _db.collection('driver').doc(uid).update(updates);
+      return;
     }
   }
 
