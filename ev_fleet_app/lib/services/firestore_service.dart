@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'default',
+  );
   final _uuid = const Uuid();
 
   /// Stream of all vehicles in the fleet for real-time tracking
@@ -15,6 +19,11 @@ class FirestoreService {
         return data;
       }).toList();
     });
+  }
+
+  /// Stream of a specific vehicle document by ID for real-time telemetry updates
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getVehicleStream(String vehicleId) {
+    return _db.collection('vehicles').doc(vehicleId).snapshots();
   }
 
   /// Get specific vehicle document by ID

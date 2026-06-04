@@ -73,7 +73,7 @@ Future<void> main() async {
 /// Fetches the latest vehicle document from Firestore to check if status was updated by the app (e.g., driver checks it out)
 Future<void> fetchCurrentStatus() async {
   final url = Uri.parse(
-    'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/vehicles/$vehicleId',
+    'https://firestore.googleapis.com/v1/projects/$projectId/databases/default/documents/vehicles/$vehicleId',
   );
 
   try {
@@ -153,9 +153,8 @@ void simulateMaintenance() {
 
 /// Pushes the dynamic telemetry data to Firestore using the REST API
 Future<void> pushToFirestore() async {
-  // Note: We use the PATCH method to update fields. If the document doesn't exist, it creates it.
   final url = Uri.parse(
-    'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/vehicles/$vehicleId'
+    'https://firestore.googleapis.com/v1/projects/$projectId/databases/default/documents/vehicles/$vehicleId'
     '?updateMask.fieldPaths=id'
     '&updateMask.fieldPaths=licensePlate'
     '&updateMask.fieldPaths=model'

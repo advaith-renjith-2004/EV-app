@@ -500,7 +500,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('vehicles').doc(vehicleId).snapshots(),
+      stream: _firestoreService.getVehicleStream(vehicleId),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
