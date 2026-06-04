@@ -161,6 +161,8 @@ class FirestoreService {
     String? driverName,
     String? driverLicense,
     String? driverPhone,
+    double latitude = 9.9312,
+    double longitude = 76.2673,
   }) async {
     final vehicleData = <String, dynamic>{
       'id': vehicleId,
@@ -168,8 +170,8 @@ class FirestoreService {
       'model': model,
       'status': isRented ? 'rented' : 'available',
       'socPercent': 100.0,
-      'latitude': 9.9312, // Depot Lat
-      'longitude': 76.2673, // Depot Lng
+      'latitude': latitude,
+      'longitude': longitude,
       'speed': 0.0,
       'lastUpdated': FieldValue.serverTimestamp(),
     };

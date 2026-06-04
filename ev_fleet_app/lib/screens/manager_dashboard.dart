@@ -58,6 +58,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     final isDark = themeProvider.themeMode == ThemeMode.dark;
     bool isLoading = false;
     bool isRented = false;
+    double pickedLat = 9.9312;
+    double pickedLng = 76.2673;
 
     showDialog(
       context: context,
@@ -126,6 +128,67 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           }
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'VEHICLE DEPLOY LOCATION',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueGrey.shade400,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Lat: ${pickedLat.toStringAsFixed(4)}\nLng: ${pickedLng.toStringAsFixed(4)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: 'monospace',
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white70 : Colors.blueGrey.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                _openLocationPicker(
+                                  context,
+                                  pickedLat,
+                                  pickedLng,
+                                  (point) {
+                                    setDialogState(() {
+                                      pickedLat = point.latitude;
+                                      pickedLng = point.longitude;
+                                    });
+                                  },
+                                );
+                              },
+                              icon: const Icon(Icons.location_on_rounded, size: 16),
+                              label: const Text('PICK ON MAP'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: primaryColor,
+                                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -248,6 +311,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                                 driverName: isRented ? driverNameController.text.trim() : null,
                                 driverLicense: isRented ? driverLicenseController.text.trim() : null,
                                 driverPhone: isRented ? driverPhoneController.text.trim() : null,
+                                latitude: pickedLat,
+                                longitude: pickedLng,
                               );
                               if (context.mounted) {
                                 Navigator.pop(context);
@@ -289,6 +354,140 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           ),
                         )
                       : const Text('ADD'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openLocationPicker(
+    BuildContext context,
+    double initialLat,
+    double initialLng,
+    Function(LatLng) onLocationPicked,
+  ) {
+    LatLng pickedLatLng = LatLng(initialLat, initialLng);
+    final pickerMapController = MapController();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final primaryColor = themeProvider.primaryColor;
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setPickerState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF131B2E) : Colors.white,
+              titlePadding: const EdgeInsets.all(20),
+              contentPadding: EdgeInsets.zero,
+              actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: isDark ? Colors.white10 : Colors.black12),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.location_searching_rounded, color: primaryColor),
+                  const SizedBox(width: 10),
+                  Text(
+                    'PINPOINT VEHICLE LOCATION',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 450,
+                height: 350,
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: pickerMapController,
+                      options: MapOptions(
+                        initialCenter: pickedLatLng,
+                        initialZoom: 14.0,
+                        minZoom: 5.0,
+                        maxZoom: 18.0,
+                        onTap: (tapPosition, point) {
+                          setPickerState(() {
+                            pickedLatLng = point;
+                          });
+                        },
+                      ),
+                      children: [
+                        ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            -0.8, 0, 0, 0, 255,
+                            0, -0.8, 0, 0, 255,
+                            0, 0, -0.75, 0, 255,
+                            0, 0, 0, 1, 0,
+                          ]),
+                          child: TileLayer(
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.advaith.evfleet',
+                          ),
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: pickedLatLng,
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                Icons.location_on_rounded,
+                                color: primaryColor,
+                                size: 36,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      right: 12,
+                      child: Card(
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          child: Text(
+                            'Lat: ${pickedLatLng.latitude.toStringAsFixed(5)}\nLng: ${pickedLatLng.longitude.toStringAsFixed(5)}\n\n💡 Tap anywhere on the map to pinpoint.',
+                            style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'monospace', height: 1.4),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'CANCEL',
+                    style: TextStyle(color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    onLocationPicked(pickedLatLng);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.white,
+                  ),
+                  child: const Text('CONFIRM'),
                 ),
               ],
             );
