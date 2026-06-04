@@ -438,12 +438,13 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           markers: [
                             Marker(
                               point: pickedLatLng,
-                              width: 40,
-                              height: 40,
-                              child: Icon(
-                                Icons.location_on_rounded,
-                                color: primaryColor,
-                                size: 36,
+                              width: 50,
+                              height: 50,
+                              alignment: Alignment.bottomCenter,
+                              child: const Icon(
+                                Icons.location_on,
+                                color: Colors.red,
+                                size: 45,
                               ),
                             ),
                           ],
