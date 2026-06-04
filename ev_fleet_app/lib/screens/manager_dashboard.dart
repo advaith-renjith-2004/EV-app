@@ -50,10 +50,14 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     final idController = TextEditingController();
     final plateController = TextEditingController();
     final modelController = TextEditingController();
+    final driverNameController = TextEditingController();
+    final driverLicenseController = TextEditingController();
+    final driverPhoneController = TextEditingController();
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final primaryColor = themeProvider.primaryColor;
     final isDark = themeProvider.themeMode == ThemeMode.dark;
     bool isLoading = false;
+    bool isRented = false;
 
     showDialog(
       context: context,
@@ -123,6 +127,78 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                           return null;
                         },
                       ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Mark as Rented (In Shift)',
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.blueGrey.shade800,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Switch(
+                            value: isRented,
+                            activeThumbColor: primaryColor,
+                            activeTrackColor: primaryColor.withValues(alpha: 0.3),
+                            onChanged: (val) {
+                              setDialogState(() {
+                                isRented = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (isRented) ...[
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: driverNameController,
+                          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                          decoration: const InputDecoration(
+                            labelText: "Driver's Full Name",
+                            hintText: 'Enter driver name',
+                          ),
+                          validator: (value) {
+                            if (isRented && (value == null || value.trim().isEmpty)) {
+                              return "Please enter driver's name";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: driverLicenseController,
+                          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                          decoration: const InputDecoration(
+                            labelText: "Driver's License Number",
+                            hintText: 'Enter license number',
+                          ),
+                          validator: (value) {
+                            if (isRented && (value == null || value.trim().isEmpty)) {
+                              return "Please enter license number";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: driverPhoneController,
+                          keyboardType: TextInputType.phone,
+                          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                          decoration: const InputDecoration(
+                            labelText: "Driver's Phone Number",
+                            hintText: 'Enter phone number',
+                          ),
+                          validator: (value) {
+                            if (isRented && (value == null || value.trim().isEmpty)) {
+                              return "Please enter phone number";
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -149,6 +225,10 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                                 vehicleId: idController.text.trim(),
                                 licensePlate: plateController.text.trim(),
                                 model: modelController.text.trim(),
+                                isRented: isRented,
+                                driverName: isRented ? driverNameController.text.trim() : null,
+                                driverLicense: isRented ? driverLicenseController.text.trim() : null,
+                                driverPhone: isRented ? driverPhoneController.text.trim() : null,
                               );
                               if (context.mounted) {
                                 Navigator.pop(context);
@@ -986,6 +1066,48 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                       minHeight: 8,
                     ),
                   ),
+                  if (status == 'rented' && (vehicle['driverName'] != null || vehicle['driverLicense'] != null)) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.badge_outlined, size: 14, color: statusColor),
+                              const SizedBox(width: 8),
+                              Text(
+                                'RENTAL DRIVER INFO',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: statusColor,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          if (vehicle['driverName'] != null)
+                            _buildDriverMetaRow('Driver Name', vehicle['driverName'].toString(), isDark),
+                          if (vehicle['driverLicense'] != null) ...[
+                            const SizedBox(height: 6),
+                            _buildDriverMetaRow('License No', vehicle['driverLicense'].toString(), isDark),
+                          ],
+                          if (vehicle['driverPhone'] != null) ...[
+                            const SizedBox(height: 6),
+                            _buildDriverMetaRow('Contact No', vehicle['driverPhone'].toString(), isDark),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
                   // Tracking Actions
@@ -1047,6 +1169,30 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         label,
         style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
       ),
+    );
+  }
+
+  Widget _buildDriverMetaRow(String label, String value, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.blueGrey.shade700,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }

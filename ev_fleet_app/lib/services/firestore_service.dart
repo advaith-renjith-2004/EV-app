@@ -63,18 +63,30 @@ class FirestoreService {
     required String vehicleId,
     required String licensePlate,
     required String model,
+    bool isRented = false,
+    String? driverName,
+    String? driverLicense,
+    String? driverPhone,
   }) async {
-    await _db.collection('vehicles').doc(vehicleId).set({
+    final vehicleData = <String, dynamic>{
       'id': vehicleId,
       'licensePlate': licensePlate,
       'model': model,
-      'status': 'available',
+      'status': isRented ? 'rented' : 'available',
       'socPercent': 100.0,
       'latitude': 9.9312, // Depot Lat
       'longitude': 76.2673, // Depot Lng
       'speed': 0.0,
       'lastUpdated': FieldValue.serverTimestamp(),
-    });
+    };
+
+    if (isRented) {
+      vehicleData['driverName'] = driverName;
+      vehicleData['driverLicense'] = driverLicense;
+      vehicleData['driverPhone'] = driverPhone;
+    }
+
+    await _db.collection('vehicles').doc(vehicleId).set(vehicleData);
   }
 
   /// Starts a checkout trip for a driver
