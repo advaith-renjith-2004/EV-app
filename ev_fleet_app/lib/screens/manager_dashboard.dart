@@ -176,8 +176,18 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                             hintText: 'Enter license number',
                           ),
                           validator: (value) {
-                            if (isRented && (value == null || value.trim().isEmpty)) {
-                              return "Please enter license number";
+                            if (isRented) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Please enter license number";
+                              }
+                              final cleaned = value.trim();
+                              // SS-RRYYYYNNNNNNN, SS RR YYYY NNNNNNN, or SSRRYYYYNNNNNNN formats
+                              final dlRegex = RegExp(
+                                r'^[A-Za-z]{2}[-\s]?[0-9]{2}[-\s]?[0-9]{4}[-\s]?[0-9]{7}$',
+                              );
+                              if (!dlRegex.hasMatch(cleaned)) {
+                                return 'Invalid Indian DL format\n(e.g., KL-01-2022-1234567)';
+                              }
                             }
                             return null;
                           },
