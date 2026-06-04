@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -206,6 +207,55 @@ class _DriverDashboardState extends State<DriverDashboard> {
     );
   }
 
+  Widget _buildProfileIcon() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const CircleAvatar(
+        radius: 16,
+        backgroundColor: Colors.white10,
+        child: Icon(Icons.person, color: Colors.white70, size: 20),
+      );
+    }
+
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: _firestoreService.getUserDataStream(user.uid),
+      builder: (context, snapshot) {
+        ImageProvider? imageProvider;
+        if (snapshot.hasData && snapshot.data != null) {
+          final data = snapshot.data!;
+          final photoUrl = data['photoUrl'] as String?;
+          if (photoUrl != null && photoUrl.isNotEmpty) {
+            if (photoUrl.startsWith('data:image')) {
+              try {
+                imageProvider = MemoryImage(base64Decode(photoUrl.split(',')[1]));
+              } catch (_) {}
+            } else {
+              imageProvider = NetworkImage(photoUrl);
+            }
+          }
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+          ),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: const Color(0xFF131B2E),
+            backgroundImage: imageProvider,
+            child: imageProvider == null
+                ? const Icon(Icons.person, color: Colors.white70, size: 20)
+                : null,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -244,12 +294,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Profile',
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.white70),
-            onPressed: () => Navigator.push(
+          GestureDetector(
+            onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: _buildProfileIcon(),
+              ),
             ),
           ),
           IconButton(
