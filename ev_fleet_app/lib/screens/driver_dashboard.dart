@@ -347,11 +347,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
               ),
             ),
           ),
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout, color: Colors.white70),
-            onPressed: () => FirebaseAuth.instance.signOut(),
-          ),
         ],
       ),
       body: _isLoading

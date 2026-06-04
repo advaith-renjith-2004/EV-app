@@ -624,11 +624,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
               ),
             ),
           ),
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout, color: Colors.white70),
-            onPressed: () => FirebaseAuth.instance.signOut(),
-          ),
         ],
         bottom: TabBar(
           controller: _tabController,
