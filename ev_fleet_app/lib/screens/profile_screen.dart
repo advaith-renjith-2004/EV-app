@@ -18,6 +18,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestoreService = FirestoreService();
   final _nameController = TextEditingController();
+  final _credentialsFormKey = GlobalKey<FormState>();
+  final _licenseController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   bool _isLoading = false;
   Map<String, dynamic>? _userData;
@@ -40,6 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _licenseController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -55,6 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userData = data;
           _nameController.text = data['name'] ?? '';
           _selectedAvatarUrl = data['photoUrl'];
+          _licenseController.text = data['license'] ?? '';
+          _phoneController.text = data['phone'] ?? '';
         });
       }
     } catch (e) {
@@ -89,6 +96,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update profile: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    if (!_credentialsFormKey.currentState!.validate()) return;
+    
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _firestoreService.updateUserProfile(
+        user.uid,
+        license: _licenseController.text.trim(),
+        phone: _phoneController.text.trim(),
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Driver credentials updated successfully!'),
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        );
+      }
+      await _loadUserProfile();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update credentials: $e'), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -340,6 +381,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
+                  if (_userData?['role'] == 'driver') ...[
+                    const SizedBox(height: 20),
+                    _buildProfileCard(
+                      title: 'DRIVER CREDENTIALS',
+                      icon: Icons.badge_outlined,
+                      isDark: isDark,
+                      child: Form(
+                        key: _credentialsFormKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextFormField(
+                              controller: _licenseController,
+                              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                              decoration: const InputDecoration(
+                                labelText: 'Driving License Number',
+                                hintText: 'e.g., KL-01-2022-1234567',
+                              ),
+                              validator: (value) {
+                                if (value != null && value.trim().isNotEmpty) {
+                                  final cleaned = value.trim();
+                                  final dlRegex = RegExp(r'^[A-Za-z]{2}[-\s]?[0-9]{2}[-\s]?[0-9]{4}[-\s]?[0-9]{7}$');
+                                  if (!dlRegex.hasMatch(cleaned)) {
+                                    return 'Invalid Indian DL format\n(e.g., KL-01-2022-1234567)';
+                                  }
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                              decoration: const InputDecoration(
+                                labelText: 'Contact Phone Number',
+                                hintText: '10-digit phone number',
+                              ),
+                              validator: (value) {
+                                if (value != null && value.trim().isNotEmpty) {
+                                  final cleaned = value.trim().replaceAll(RegExp(r'[-\s()+]'), '');
+                                  final phoneRegex = RegExp(r'^(?:91)?[6-9][0-9]{9}$');
+                                  if (!phoneRegex.hasMatch(cleaned)) {
+                                    return 'Please enter a valid 10-digit phone number';
+                                  }
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _isLoading ? null : _saveCredentials,
+                              icon: const Icon(Icons.save_rounded, size: 18),
+                              label: const Text('SAVE CREDENTIALS'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: isDark ? const Color(0xFF0A0F1D) : Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
                   // Themes Settings Card

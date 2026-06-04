@@ -126,10 +126,12 @@ class FirestoreService {
   }
 
   /// Updates user profile details like name and photo
-  Future<void> updateUserProfile(String uid, {String? name, String? photoUrl}) async {
+  Future<void> updateUserProfile(String uid, {String? name, String? photoUrl, String? license, String? phone}) async {
     final updates = <String, dynamic>{};
     if (name != null) updates['name'] = name;
     if (photoUrl != null) updates['photoUrl'] = photoUrl;
+    if (license != null) updates['license'] = license;
+    if (phone != null) updates['phone'] = phone;
     
     if (updates.isEmpty) return;
 
@@ -249,5 +251,44 @@ class FirestoreService {
       return data;
     }
     return null;
+  }
+
+  /// Checks if there is a rented vehicle assigned to the driver by matching name, license or phone
+  Future<Map<String, dynamic>?> getRentedVehicleForDriver({
+    required String name,
+    required String license,
+    required String phone,
+  }) async {
+    final query = await _db
+        .collection('vehicles')
+        .where('status', isEqualTo: 'rented')
+        .get();
+
+    for (final doc in query.docs) {
+      final data = doc.data();
+      final dbName = (data['driverName'] as String?)?.toLowerCase().trim();
+      final dbLicense = (data['driverLicense'] as String?)?.toLowerCase().trim();
+      final dbPhone = (data['driverPhone'] as String?)?.toLowerCase().trim();
+
+      final matchName = name.isNotEmpty && dbName == name.toLowerCase().trim();
+      final matchLicense = license.isNotEmpty && dbLicense == license.toLowerCase().trim();
+      final matchPhone = phone.isNotEmpty && dbPhone == phone.toLowerCase().trim();
+
+      if (matchName || matchLicense || matchPhone) {
+        data['id'] = doc.id;
+        return data;
+      }
+    }
+    return null;
+  }
+
+  /// Release a rented vehicle and clear driver metadata
+  Future<void> endRentedVehicle(String vehicleId) async {
+    await _db.collection('vehicles').doc(vehicleId).update({
+      'status': 'available',
+      'driverName': FieldValue.delete(),
+      'driverLicense': FieldValue.delete(),
+      'driverPhone': FieldValue.delete(),
+    });
   }
 }

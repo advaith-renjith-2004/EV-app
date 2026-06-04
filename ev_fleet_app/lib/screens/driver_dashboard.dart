@@ -38,7 +38,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
     setState(() => _isLoading = true);
 
     try {
-      final trip = await _firestoreService.getActiveDriverTrip(_currentUser.uid);
+      var trip = await _firestoreService.getActiveDriverTrip(_currentUser.uid);
       if (trip != null) {
         final vehicle = await _firestoreService.getVehicle(trip['vehicleId']);
         setState(() {
@@ -46,6 +46,34 @@ class _DriverDashboardState extends State<DriverDashboard> {
           _activeVehicle = vehicle;
         });
       } else {
+        // Fetch driver profile data to check for any manager-assigned rentals
+        final profile = await _firestoreService.getUserData(_currentUser.uid);
+        if (profile != null) {
+          final String name = profile['name'] ?? '';
+          final String license = profile['license'] ?? '';
+          final String phone = profile['phone'] ?? '';
+          
+          final rentedVehicle = await _firestoreService.getRentedVehicleForDriver(
+            name: name,
+            license: license,
+            phone: phone,
+          );
+          
+          if (rentedVehicle != null) {
+            setState(() {
+              _activeTrip = {
+                'id': 'rented_bypass',
+                'vehicleId': rentedVehicle['id'],
+                'driverId': _currentUser.uid,
+                'startTime': rentedVehicle['lastUpdated'] ?? Timestamp.now(),
+                'isRentedBypass': true,
+              };
+              _activeVehicle = rentedVehicle;
+            });
+            return;
+          }
+        }
+
         setState(() {
           _activeTrip = null;
           _activeVehicle = null;
@@ -131,11 +159,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
       final vehicle = await _firestoreService.getVehicle(_activeVehicle!['id']);
       final double endSoc = (vehicle?['socPercent'] as num? ?? 100.0).toDouble();
 
-      await _firestoreService.endTrip(
-        tripId: _activeTrip!['id'],
-        vehicleId: _activeVehicle!['id'],
-        endSoc: endSoc,
-      );
+      if (_activeTrip!['isRentedBypass'] == true) {
+        await _firestoreService.endRentedVehicle(_activeVehicle!['id']);
+      } else {
+        await _firestoreService.endTrip(
+          tripId: _activeTrip!['id'],
+          vehicleId: _activeVehicle!['id'],
+          endSoc: endSoc,
+        );
+      }
 
       _showStatusDialog(
         title: 'Shift Logged Out',
