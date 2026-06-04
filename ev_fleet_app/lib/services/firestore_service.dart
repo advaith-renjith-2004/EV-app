@@ -55,56 +55,58 @@ class FirestoreService {
     StreamSubscription? managerSub;
     StreamSubscription? driverSub;
 
-    // Do a quick check on where the user document exists to setup the snapshots subscription
-    _db.collection('manager').doc(uid).get().then((managerDoc) {
-      if (managerDoc.exists) {
-        managerSub = _db.collection('manager').doc(uid).snapshots().listen(
-          (snap) {
-            if (snap.exists) {
-              final data = snap.data();
-              if (data != null) {
-                data['role'] = 'manager';
-                controller.add(data);
-              }
-            } else {
-              controller.add(null);
-            }
-          },
-          onError: controller.addError,
-        );
-      } else {
-        driverSub = _db.collection('driver').doc(uid).snapshots().listen(
-          (snap) {
-            if (snap.exists) {
-              final data = snap.data();
-              if (data != null) {
-                data['role'] = 'driver';
-                controller.add(data);
-              }
-            } else {
-              controller.add(null);
-            }
-          },
-          onError: controller.addError,
-        );
+    Map<String, dynamic>? lastManagerData;
+    Map<String, dynamic>? lastDriverData;
+    bool managerDone = false;
+    bool driverDone = false;
+
+    void checkAndEmit() {
+      if (lastManagerData != null) {
+        controller.add(lastManagerData);
+      } else if (lastDriverData != null) {
+        controller.add(lastDriverData);
+      } else if (managerDone && driverDone) {
+        controller.add(null);
       }
-    }).catchError((e) {
-      // Gracefully fall back to subscribing to the driver stream if manager check fails
-      driverSub = _db.collection('driver').doc(uid).snapshots().listen(
-        (snap) {
-          if (snap.exists) {
-            final data = snap.data();
-            if (data != null) {
-              data['role'] = 'driver';
-              controller.add(data);
-            }
-          } else {
-            controller.add(null);
+    }
+
+    managerSub = _db.collection('manager').doc(uid).snapshots().listen(
+      (snap) {
+        managerDone = true;
+        if (snap.exists) {
+          lastManagerData = snap.data();
+          if (lastManagerData != null) {
+            lastManagerData!['role'] = 'manager';
           }
-        },
-        onError: controller.addError,
-      );
-    });
+        } else {
+          lastManagerData = null;
+        }
+        checkAndEmit();
+      },
+      onError: (e) {
+        managerDone = true;
+        checkAndEmit();
+      },
+    );
+
+    driverSub = _db.collection('driver').doc(uid).snapshots().listen(
+      (snap) {
+        driverDone = true;
+        if (snap.exists) {
+          lastDriverData = snap.data();
+          if (lastDriverData != null) {
+            lastDriverData!['role'] = 'driver';
+          }
+        } else {
+          lastDriverData = null;
+        }
+        checkAndEmit();
+      },
+      onError: (e) {
+        driverDone = true;
+        checkAndEmit();
+      },
+    );
 
     controller.onCancel = () {
       managerSub?.cancel();
