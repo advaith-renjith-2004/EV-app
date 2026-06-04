@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"ev-fleet-advaith-2026","appId":"1:516913655806:android:f4083da7572ba5c041daaf","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"ev-fleet-advaith-2026","configurations":{"android":"1:516913655806:android:f4083da7572ba5c041daaf","ios":"1:516913655806:ios:f5fa212738b2514441daaf","macos":"1:516913655806:ios:f5fa212738b2514441daaf","web":"1:516913655806:web:826ef8e651b2748341daaf","windows":"1:516913655806:web:f2aaea27a9cadfdf41daaf"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ev-fleet-advaith-2026",
+          "appId": "1:516913655806:android:f4083da7572ba5c041daaf",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ev-fleet-advaith-2026",
+          "configurations": {
+            "android": "1:516913655806:android:f4083da7572ba5c041daaf",
+            "ios": "1:516913655806:ios:f5fa212738b2514441daaf",
+            "macos": "1:516913655806:ios:f5fa212738b2514441daaf",
+            "web": "1:516913655806:web:826ef8e651b2748341daaf",
+            "windows": "1:516913655806:web:f2aaea27a9cadfdf41daaf"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
