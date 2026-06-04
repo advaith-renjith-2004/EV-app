@@ -282,10 +282,19 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   Widget _buildProfileIcon() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const CircleAvatar(
-        radius: 16,
-        backgroundColor: Colors.white10,
-        child: Icon(Icons.person, color: Colors.white70, size: 20),
+      return Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white24,
+            width: 1.5,
+          ),
+        ),
+        child: const CircleAvatar(
+          radius: 16,
+          backgroundColor: Color(0xFF131B2E),
+          backgroundImage: NetworkImage('https://api.dicebear.com/7.x/bottts/png?seed=Default'),
+        ),
       );
     }
 
@@ -307,6 +316,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
           }
         }
 
+        imageProvider ??= const NetworkImage('https://api.dicebear.com/7.x/bottts/png?seed=Default');
+
         return Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -319,9 +330,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             radius: 16,
             backgroundColor: const Color(0xFF131B2E),
             backgroundImage: imageProvider,
-            child: imageProvider == null
-                ? const Icon(Icons.person, color: Colors.white70, size: 20)
-                : null,
           ),
         );
       },
@@ -384,14 +392,15 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
           ],
         ),
         actions: [
-          GestureDetector(
+          InkWell(
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
             ),
+            borderRadius: BorderRadius.circular(20),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: _buildProfileIcon(),
               ),
             ),
