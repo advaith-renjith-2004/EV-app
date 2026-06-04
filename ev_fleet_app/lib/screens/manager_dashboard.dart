@@ -24,6 +24,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
   Map<String, dynamic>? _selectedVehicle;
   bool _isSearching = false;
   String _searchQuery = '';
+  LatLng? _pendingDeployLocation;
 
   @override
   void initState() {
@@ -45,7 +46,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     });
   }
 
-  void _showAddVehicleDialog() {
+  void _showAddVehicleDialog({double? initialLat, double? initialLng}) {
     final formKey = GlobalKey<FormState>();
     final idController = TextEditingController();
     final plateController = TextEditingController();
@@ -58,8 +59,8 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
     final isDark = themeProvider.themeMode == ThemeMode.dark;
     bool isLoading = false;
     bool isRented = false;
-    double pickedLat = 9.9312;
-    double pickedLng = 76.2673;
+    double pickedLat = initialLat ?? 9.9312;
+    double pickedLng = initialLng ?? 76.2673;
 
     showDialog(
       context: context,
@@ -692,7 +693,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddVehicleDialog,
+        onPressed: () => _showAddVehicleDialog(),
         backgroundColor: primaryColor,
         foregroundColor: const Color(0xFF0F172A),
         tooltip: 'Add Vehicle',
@@ -911,6 +912,12 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
             initialZoom: 14.0,
             minZoom: 5.0,
             maxZoom: 18.0,
+            onTap: (tapPosition, point) {
+              setState(() {
+                _selectedVehicle = null;
+                _pendingDeployLocation = point;
+              });
+            },
           ),
           children: [
             // Dark Inversion Matrix applied directly inside map children
@@ -927,7 +934,30 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
               ),
             ),
             // Layer markers directly on top of tiles within the same map
-            MarkerLayer(markers: markers),
+            MarkerLayer(
+              markers: [
+                ...markers,
+                if (_pendingDeployLocation != null)
+                  Marker(
+                    point: _pendingDeployLocation!,
+                    width: 50,
+                    height: 50,
+                    alignment: Alignment.bottomCenter,
+                    child: Icon(
+                      Icons.location_on_rounded,
+                      color: Colors.redAccent,
+                      size: 45,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        )
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
 
@@ -1128,6 +1158,93 @@ class _ManagerDashboardState extends State<ManagerDashboard> with SingleTickerPr
                               },
                               icon: const Icon(Icons.gps_fixed, size: 16),
                               label: const Text('CENTER MAP'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: const Color(0xFF0F172A),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // Pending Deploy Location Card floating overlay
+        if (_pendingDeployLocation != null)
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.add_location_alt_rounded, color: primaryColor),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'PINPOINTED DEPLOYMENT POINT',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      const Divider(color: Colors.white10, height: 24),
+                      Text(
+                        'Coordinates: ${_pendingDeployLocation!.latitude.toStringAsFixed(5)}, ${_pendingDeployLocation!.longitude.toStringAsFixed(5)}',
+                        style: const TextStyle(color: Colors.white70, fontFamily: 'monospace', fontSize: 13),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _pendingDeployLocation = null;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text('DISMISS'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                final loc = _pendingDeployLocation!;
+                                setState(() {
+                                  _pendingDeployLocation = null;
+                                });
+                                _showAddVehicleDialog(initialLat: loc.latitude, initialLng: loc.longitude);
+                              },
+                              icon: const Icon(Icons.electric_car, size: 16),
+                              label: const Text('DEPLOY VEHICLE'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
                                 foregroundColor: const Color(0xFF0F172A),
